@@ -1,4 +1,3 @@
-
 const SOLR_URL = process.env.SOLR_URL;
 const SOLR_USERNAME = process.env.SOLR_USERNAME;
 const SOLR_PASSWORD = process.env.SOLR_PASSWORD;
@@ -6,9 +5,11 @@ const SOLR_PASSWORD = process.env.SOLR_PASSWORD;
 // Create base64 encoded credentials for Basic Auth
 export const getAuthHeader = () => {
   if (!SOLR_USERNAME || !SOLR_PASSWORD) {
-    throw new Error('Solr credentials are not configured');
+    throw new Error("Solr credentials are not configured");
   }
-  const credentials = Buffer.from(`${SOLR_USERNAME}:${SOLR_PASSWORD}`).toString('base64');
+  const credentials = Buffer.from(`${SOLR_USERNAME}:${SOLR_PASSWORD}`).toString(
+    "base64"
+  );
   return `Basic ${credentials}`;
 };
 
@@ -39,7 +40,7 @@ export const querySolr = async <T = any>(params: {
 }): Promise<SolrQueryResult<T>> => {
   const {
     core,
-    query = '*:*',
+    query = "*:*",
     additionalParams = {},
     enableFacets = false,
     pageSize = 20,
@@ -47,20 +48,20 @@ export const querySolr = async <T = any>(params: {
     offset,
     facets,
     revalidate = 3600,
-    tags = ['solr'],
+    tags = ["solr"],
   } = params;
 
-  if (!SOLR_URL) throw new Error('Solr URL is not configured');
-  if (!core) throw new Error('Solr core is required');
+  if (!SOLR_URL) throw new Error("Solr URL is not configured");
+  if (!core) throw new Error("Solr core is required");
 
   const searchParams = new URLSearchParams();
-  searchParams.set('q', query);
-  searchParams.set('rows', pageSize.toString());
-  searchParams.set('wt', 'json');
+  searchParams.set("q", query);
+  searchParams.set("rows", pageSize.toString());
+  searchParams.set("wt", "json");
 
   // Calculate start/offset for pagination
   const startOffset = offset !== undefined ? offset : (page - 1) * pageSize;
-  searchParams.set('start', startOffset.toString());
+  searchParams.set("start", startOffset.toString());
 
   Object.entries(additionalParams).forEach(([key, value]) => {
     searchParams.set(key, value);
@@ -71,16 +72,18 @@ export const querySolr = async <T = any>(params: {
   try {
     const response = await fetch(solrUrl, {
       headers: {
-        'Authorization': getAuthHeader(),
-        'Content-Type': 'application/json'
+        Authorization: getAuthHeader(),
+        "Content-Type": "application/json",
       },
-      next: { revalidate, tags }
+      next: { revalidate, tags },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Solr error response:", errorText);
-      throw new Error(`Solr request failed with status ${response.status}. Check console for full error.`);
+      throw new Error(
+        `Solr request failed with status ${response.status}. Check console for full error.`
+      );
     }
 
     const result = await response.json();
@@ -122,7 +125,7 @@ export const querySolrForGrouping = async <T = any>(params: {
 }): Promise<SolrQueryResult<T>> => {
   const {
     core,
-    query = '*:*',
+    query = "*:*",
     additionalParams = {},
     enableFacets = false,
     pageSize = 20,
@@ -130,53 +133,54 @@ export const querySolrForGrouping = async <T = any>(params: {
     offset,
     facets,
     revalidate = 3600,
-    tags = ['solr'],
+    tags = ["solr"],
     group = false,
     groupField,
     groupLimit,
-    groupSort
+    groupSort,
   } = params;
 
-  if (!SOLR_URL) throw new Error('Solr URL is not configured');
-  if (!core) throw new Error('Solr core is required');
+  if (!SOLR_URL) throw new Error("Solr URL is not configured");
+  if (!core) throw new Error("Solr core is required");
 
   const searchParams = new URLSearchParams();
-  searchParams.set('q', query);
-  searchParams.set('rows', pageSize.toString());
-  searchParams.set('wt', 'json');
+  searchParams.set("q", query);
+  searchParams.set("rows", pageSize.toString());
+  searchParams.set("wt", "json");
 
   // Calculate start/offset for pagination
   const startOffset = offset !== undefined ? offset : (page - 1) * pageSize;
-  searchParams.set('start', startOffset.toString());
+  searchParams.set("start", startOffset.toString());
 
   // Add grouping parameters if enabled
   if (group) {
-    searchParams.set('group', 'true');
-    if (groupField) searchParams.set('group.field', groupField);
-    if (groupLimit) searchParams.set('group.limit', groupLimit.toString());
-    if (groupSort) searchParams.set('group.sort', groupSort);
+    searchParams.set("group", "true");
+    if (groupField) searchParams.set("group.field", groupField);
+    if (groupLimit) searchParams.set("group.limit", groupLimit.toString());
+    if (groupSort) searchParams.set("group.sort", groupSort);
   }
 
   Object.entries(additionalParams).forEach(([key, value]) => {
     searchParams.set(key, value);
   });
 
-
   const solrUrl = `${SOLR_URL}/${core}/select?${searchParams.toString()}`;
 
   try {
     const response = await fetch(solrUrl, {
       headers: {
-        'Authorization': getAuthHeader(),
-        'Content-Type': 'application/json'
+        Authorization: getAuthHeader(),
+        "Content-Type": "application/json",
       },
-      next: { revalidate, tags }
+      next: { revalidate, tags },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Solr error response:", errorText);
-      throw new Error(`Solr request failed with status ${response.status}. Check console for full error.`);
+      throw new Error(
+        `Solr request failed with status ${response.status}. Check console for full error.`
+      );
     }
 
     const result = await response.json();

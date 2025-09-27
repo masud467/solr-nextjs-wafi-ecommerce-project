@@ -6,4 +6,4 @@ export const SOLR_CORES = {
   PRODUCT_DETAILS: "product_details",
 } as const;
 
-export type SolrCore = typeof SOLR_CORES[keyof typeof SOLR_CORES];
+export type SolrCore = (typeof SOLR_CORES)[keyof typeof SOLR_CORES];
