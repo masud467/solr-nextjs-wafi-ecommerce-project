@@ -15,7 +15,7 @@ export default function Header1({
   isCartSidebar,
   handleCartSidebar,
 }) {
-  const [isToggled, setToggled] = useState(true);
+  const [isToggled, setToggled] = useState(false);
   const handleToggle = () => setToggled(!isToggled);
 
   return (

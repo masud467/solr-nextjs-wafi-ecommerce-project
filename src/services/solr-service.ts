@@ -1,6 +1,7 @@
 import { SOLR_CORES } from "../constants/solrCores";
 import type { ProductCategory } from "../types/productCategory";
 import type { ProductGroup } from "../types/productGroup";
+import type { Products } from "../types/products";
 import { querySolr } from "../util/solr";
 
 export interface PaginationParams {
@@ -46,6 +47,22 @@ interface SolrProductCategory {
   product_group_icon_url_s?: string;
   product_group_image_url_s?: string;
   product_group_is_active_b?: boolean;
+}
+
+// for task 2
+interface SolrProduct {
+  id: string;
+  name_s: string;
+  slug_s: string;
+  sale_price_d?: number;
+  regular_price_d?: number;
+  discount_percent_d?: number;
+  image_urls_ss?: string[];
+  group_name_s?: string;
+  group_slug_s?: string;
+  category_name_s?: string;
+  category_slug_s?: string;
+  is_active_b?: boolean;
 }
 
 export class SolrService {
@@ -136,6 +153,97 @@ export class SolrService {
     } catch (error) {
       console.error(
         `Error fetching categories for product group ${productGroupSlug}:`,
+        error
+      );
+      return null;
+    }
+  }
+
+  // for task 2
+
+  // fetch products by product groups
+  static async getProductsByGroup(
+    groupSlug: string,
+    params?: PaginationParams
+  ): Promise<PaginatedResult<Products> | null> {
+    try {
+      const result = await querySolr<SolrProduct>({
+        core: SOLR_CORES.PRODUCT_DETAILS,
+        query: `group_slug_s:"${groupSlug}"`,
+        pageSize: params?.pageSize || 10,
+        page: params?.page || 1,
+      });
+      const mappedProducts = result.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.name_s || "",
+        slug: doc.slug_s || "",
+        imageUrls: doc.image_urls_ss || [],
+        salePrice: doc.sale_price_d ?? 0,
+        regularPrice: doc.regular_price_d ?? 0,
+        discountPercent: doc.discount_percent_d ?? 0,
+        groupName: doc.group_name_s || "",
+        groupSlug: doc.group_slug_s || "",
+        categoryName: doc.category_name_s || "",
+        categorySlug: doc.category_slug_s || "",
+        isActive: doc.is_active_b ?? false,
+      }));
+      return {
+        data: mappedProducts,
+        pagination: {
+          total: result.total,
+          pageSize: result.pageSize,
+          currentPage: result.currentPage,
+          totalPages: result.totalPages,
+          hasNextPage: result.hasNextPage,
+          hasPrevPage: result.hasPrevPage,
+        },
+      };
+    } catch (error) {
+      console.log(`Error fetching products by group ${groupSlug}:`, error);
+      return null;
+    }
+  }
+
+  // fetch products by product categories
+  static async getProductsByCategory(
+    categorySlug: string,
+    params?: PaginationParams
+  ): Promise<PaginatedResult<Products> | null> {
+    try {
+      const result = await querySolr<SolrProduct>({
+        core: SOLR_CORES.PRODUCT_DETAILS,
+        query: `category_slug_s:"${categorySlug}"`,
+        pageSize: params?.pageSize || 10,
+        page: params?.page || 1,
+      });
+      const mappedProducts = result.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.name_s || "",
+        slug: doc.slug_s || "",
+        imageUrls: doc.image_urls_ss || [],
+        salePrice: doc.sale_price_d ?? 0,
+        regularPrice: doc.regular_price_d ?? 0,
+        discountPercent: doc.discount_percent_d ?? 0,
+        groupName: doc.group_name_s || "",
+        groupSlug: doc.group_slug_s || "",
+        categoryName: doc.category_name_s || "",
+        categorySlug: doc.category_slug_s || "",
+        isActive: doc.is_active_b ?? false,
+      }));
+      return {
+        data: mappedProducts,
+        pagination: {
+          total: result.total,
+          pageSize: result.pageSize,
+          currentPage: result.currentPage,
+          totalPages: result.totalPages,
+          hasNextPage: result.hasNextPage,
+          hasPrevPage: result.hasPrevPage,
+        },
+      };
+    } catch (error) {
+      console.log(
+        `Error fetching products by category ${categorySlug}:`,
         error
       );
       return null;
